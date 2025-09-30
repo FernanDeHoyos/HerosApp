@@ -1,4 +1,4 @@
-import { ComposerJumbotron } from "@/components/composer/ComposerJumbotron"
+import { ComposerJumbotron } from "@/components/custom/CustomJumbotron"
 import { HeroStats } from "@/heroes/components/HeroStats"
 import Searchcontrol from "./ui/Searchcontrol"
 

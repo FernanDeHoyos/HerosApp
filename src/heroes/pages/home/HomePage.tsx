@@ -1,19 +1,28 @@
 import {
   Filter,
   Heart,
-  ChevronLeft,
-  ChevronRight,
-  MoreHorizontal,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ComposerJumbotron } from "@/components/composer/ComposerJumbotron"
+import { ComposerJumbotron } from "@/components/custom/CustomJumbotron"
 import { HeroStats } from "@/heroes/components/HeroStats"
 import { HeroGrid } from "@/heroes/components/HeroGrid"
-import { useState } from "react"
+import {CustomPagination} from "@/components/custom/CustomPagination"
+import { CustomBreadcrumb } from "@/components/custom/CustomBreadCrumb"
+import { getHeroesByIdsAction } from "@/heroes/actions/get-hero-by-page.actions"
+import { useQuery } from "@tanstack/react-query"
+import { useEffect, useState } from "react"
+
 
 export const HomePage = () => {
+
+  const {data: heroesResponse} = useQuery({
+    queryKey: ['heroes'], //key de la query
+    queryFn: () => getHeroesByIdsAction(), //funcion a disparar cuando se ejecute la query
+    staleTime: 1000 * 60 * 5 //tiempo en que la peticion http se va a cosiderar fresca (no se ejecutara de nuevo)
+  })
+
+
   const [isActive, setIsActive] = useState<
     "all" |
     "favorites" |
@@ -29,6 +38,16 @@ export const HomePage = () => {
           Title={"Superhero Database"}
           Description={"Explora y descubre superheroes y supervillanos"}
         />
+
+        <CustomBreadcrumb 
+        currentPage={"Super heroes"}
+        breadcrumb={[
+        { label: "home1", to: "/"},
+        { label: "home2", to: "/"},
+        { label: "home3", to: "/"},
+        ]}
+         />
+
 
         {/* Stats Dashboard */}
         <HeroStats />
@@ -47,22 +66,23 @@ export const HomePage = () => {
           <TabsContent value="all">
             <h1>Todos los personajes</h1>
             {/* Character Grid */}
-            <HeroGrid />
+            <HeroGrid heroes={heroesResponse ?? []  } />
+            {/* <HeroGrid /> */}
           </TabsContent>
           <TabsContent value="fovorites">
             <h1>Todos los personajes favoritos</h1>
             {/* Character Grid */}
-            <HeroGrid />
+            
           </TabsContent>
           <TabsContent value="heroes">
             <h1>Todos los heroes</h1>
             {/* Character Grid */}
-            <HeroGrid />
+            {/* <HeroGrid /> */}
           </TabsContent>
           <TabsContent value="villains">
             <h1>Todos los villanos</h1>
             {/* Character Grid */}
-            <HeroGrid />
+            {/* <HeroGrid /> */}
           </TabsContent>
         </Tabs>
 
@@ -80,30 +100,7 @@ export const HomePage = () => {
 
 
         {/* Pagination */}
-        <div className="flex items-center justify-center space-x-2">
-          <Button variant="outline" size="sm" disabled>
-            <ChevronLeft className="h-4 w-4" />
-            Previous
-          </Button>
-
-          <Button variant="default" size="sm">
-            1
-          </Button>
-          <Button variant="outline" size="sm">
-            2
-          </Button>
-          <Button variant="outline" size="sm">
-            3
-          </Button>
-          <Button variant="ghost" size="sm" disabled>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-
-          <Button variant="outline" size="sm">
-            Next
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
+        <CustomPagination totalPages={8} />
       </>
     </>
   )
