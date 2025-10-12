@@ -7,28 +7,44 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ComposerJumbotron } from "@/components/custom/CustomJumbotron"
 import { HeroStats } from "@/heroes/components/HeroStats"
 import { HeroGrid } from "@/heroes/components/HeroGrid"
-import {CustomPagination} from "@/components/custom/CustomPagination"
+import { CustomPagination } from "@/components/custom/CustomPagination"
 import { CustomBreadcrumb } from "@/components/custom/CustomBreadCrumb"
 import { getHeroesByIdsAction } from "@/heroes/actions/get-hero-by-page.actions"
 import { useQuery } from "@tanstack/react-query"
-import { useEffect, useState } from "react"
+import { useMemo } from "react"
+import { useSearchParams } from "react-router"
 
 
 export const HomePage = () => {
+  
+  const [searchParams, setSearchParams] = useSearchParams()
 
-  const {data: heroesResponse} = useQuery({
-    queryKey: ['heroes'], //key de la query
-    queryFn: () => getHeroesByIdsAction(), //funcion a disparar cuando se ejecute la query
+  const isActive = searchParams.get('tab') ?? 'all'
+  const page = searchParams.get('page') ?? '1'
+  const limit = searchParams.get('limit') ?? '9'
+  
+  const selectActiveTab = useMemo(() => {
+    const validTab = ["all", "favorites", "heroes", "villains"] 
+    return validTab.includes(isActive) ? isActive : 'all'
+  },[isActive])
+
+  const { data: heroesResponse } = useQuery({
+    queryKey: ['heroes', {page, limit}], //key de la query
+    queryFn: () => getHeroesByIdsAction(+page, +limit), //funcion a disparar cuando se ejecute la query 
+    // !!importante si la funcion queryFn recibe algumentos, esos argumentos deben ir en queryKey
     staleTime: 1000 * 60 * 5 //tiempo en que la peticion http se va a cosiderar fresca (no se ejecutara de nuevo)
   })
 
+  const heroes = heroesResponse?.heroes ?? [];
+  const totalPages = heroesResponse?.totalPages ?? 0;
 
-  const [isActive, setIsActive] = useState<
-    "all" |
-    "favorites" |
-    "heroes" |
-    "villains"
-  >("all")
+
+  // const [isActive, setIsActive] = useState<
+  //   "all" |
+  //   "favorites" |
+  //   "heroes" |
+  //   "villains"
+  // >("all")
 
   return (
     <>
@@ -39,40 +55,68 @@ export const HomePage = () => {
           Description={"Explora y descubre superheroes y supervillanos"}
         />
 
-        <CustomBreadcrumb 
-        currentPage={"Super heroes"}
-        breadcrumb={[
-        { label: "home1", to: "/"},
-        { label: "home2", to: "/"},
-        { label: "home3", to: "/"},
-        ]}
-         />
+        <CustomBreadcrumb
+          currentPage={"Super heroes"}
+          breadcrumb={[
+            { label: "home1", to: "/" },
+            { label: "home2", to: "/" },
+            { label: "home3", to: "/" },
+          ]}
+        />
 
 
         {/* Stats Dashboard */}
         <HeroStats />
 
         {/* Tabs */}
-        <Tabs value={isActive} className="mb-8">
+        <Tabs value={selectActiveTab} className="mb-8">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="all" onClick={() => setIsActive("all")}>All Characters (16)</TabsTrigger>
-            <TabsTrigger value="favorites" onClick={() => setIsActive("favorites")} className="flex items-center gap-2">
+            <TabsTrigger
+              value="all"
+              onClick={() => setSearchParams((prev) => {
+                prev.set('tab', 'all')
+                return prev
+              })}>All Characters (16)</TabsTrigger>
+
+            <TabsTrigger
+              value="favorites"
+              onClick={() => setSearchParams((prev) => {
+                prev.set('tab', 'favorites')
+                return prev
+              })}
+              className="flex items-center gap-2">
               <Heart className="h-4 w-4" />
               Favorites (3)
             </TabsTrigger>
-            <TabsTrigger value="heroes" onClick={() => setIsActive("heroes")}>Heroes (12)</TabsTrigger>
-            <TabsTrigger value="villains" onClick={() => setIsActive("villains")}>Villains (2)</TabsTrigger>
+
+            <TabsTrigger
+              value="heroes"
+              onClick={() => setSearchParams((prev) => {
+                prev.set('tab', 'heroes')
+                return prev
+              })}>
+              Heroes (12)
+            </TabsTrigger>
+
+            <TabsTrigger value="villains"
+              onClick={() => setSearchParams((prev) => {
+                prev.set('tab', 'villains')
+                return prev
+              })}>
+              Villains (2)
+            </TabsTrigger>
+
           </TabsList>
           <TabsContent value="all">
             <h1>Todos los personajes</h1>
             {/* Character Grid */}
-            <HeroGrid heroes={heroesResponse ?? []  } />
+            <HeroGrid heroes={heroes} />
             {/* <HeroGrid /> */}
           </TabsContent>
           <TabsContent value="fovorites">
             <h1>Todos los personajes favoritos</h1>
             {/* Character Grid */}
-            
+
           </TabsContent>
           <TabsContent value="heroes">
             <h1>Todos los heroes</h1>
@@ -100,7 +144,7 @@ export const HomePage = () => {
 
 
         {/* Pagination */}
-        <CustomPagination totalPages={8} />
+        <CustomPagination totalPages={totalPages} />
       </>
     </>
   )

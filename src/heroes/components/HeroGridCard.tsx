@@ -1,132 +1,105 @@
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardHeader, CardContent } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Heart, Eye, Zap, Brain, Gauge, Shield } from "lucide-react"
+import { Card } from "@/components/ui/card"
+import { Zap, Brain, Shield } from "lucide-react"
 import type { Hero } from "../types/Get-hero.response"
-import { useEffect, useState } from "react"
 
 interface Props {
-  heroe: Hero
+  hero: Hero
+  onClick?: () => void;
 }
 
-export const HeroGridCard = ({heroe}: Props) => {
-  
-const formattedPowers = Object.entries(heroe.powerstats).map(([name, value]) => ({
-  label: name.charAt(0).toUpperCase() + name.slice(1), // Capitaliza
-  value
-}));
+export const HeroGridCard = ({ hero, onClick}: Props) => {
+
+  const isHero = hero.biography.alignment === "good";
+  const topStats = [
+    { name: "Power", value: hero.powerstats.power, icon: Zap },
+    { name: "Durability", value: hero.powerstats.durability, icon: Shield },
+    { name: "Intelligence", value: hero.powerstats.intelligence, icon: Brain },
+  ].sort((a, b) => b.value - a.value).slice(0, 3);
 
   return (
-    <div>
-      <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-gray-50">
-            <div className="relative h-64 overflow-hidden">
-              <img
-                src={heroe.images.lg}
-                alt="Superman"
-                className="object-cover transition-all duration-500 group-hover:scale-110"
-              />
+      <Card
+      className="group relative overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_30px_hsl(var(--primary)/0.5)] bg-card border-border"
+      onClick={onClick}
+    >
+      {/* Image Container */}
+      <div className="relative h-100 overflow-hidden">
+        <img
+          src={hero.images.md}
+          alt={hero.name}
+          className="object-cover transition-all duration-500 group-hover:scale-110 absolute top-[-30px] w-full h-[450px] "
+        />
+        {/* Gradient Overlay */}
+        <div 
+          className="absolute inset-0 opacity-60"
+          style={{
+            background: isHero 
+              ? 'linear-gradient(180deg, transparent 0%, hsl(220 20% 14%) 100%)'
+              : 'linear-gradient(180deg, transparent 0%, hsl(0 84% 10%) 100%)'
+          }}
+        />
+        
+        {/* Alignment Badge */}
+        <div className="absolute top-4 right-4">
+          <Badge 
+            className={`font-bold uppercase tracking-wider ${
+              isHero 
+                ? 'bg-[hsl(217_91%_60%)] hover:bg-[hsl(217_91%_70%)] text-primary-foreground shadow-[0_0_15px_hsl(217_91%_60%/0.5)]' 
+                : 'bg-[hsl(0_84%_60%)] hover:bg-[hsl(0_84%_70%)] text-primary-foreground shadow-[0_0_15px_hsl(0_84%_60%/0.5)]'
+            }`}
+          >
+            {isHero ? "Hero" : "Villain"}
+          </Badge>
+        </div>
+      </div>
 
-              {/* Status indicator */}
-              <div className="absolute top-3 left-3 flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-green-500" />
-                <Badge variant="secondary" className="text-xs bg-white/90 text-gray-700">
-                  Active
-                </Badge>
-              </div>
+      {/* Content */}
+      <div className="p-6 space-y-4">
+        {/* Name and Publisher */}
+        <div>
+          <h3 className="text-2xl font-bold text-foreground mb-1 group-hover:text-primary transition-colors">
+            {hero.name}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {hero.biography.publisher}
+          </p>
+        </div>
 
-              {/* Universe badge */}
-              <Badge className="absolute top-3 right-3 text-xs bg-blue-600 text-white">
-                {heroe?.biography?.publisher}
-              </Badge>
-
-              {/* Favorite button */}
-              <Button size="sm" variant="ghost" className="absolute bottom-3 right-3 bg-white/90 hover:bg-white">
-                <Heart className="h-4 w-4 fill-red-500 text-red-500" />
-              </Button>
-
-              {/* View details button */}
-              <Button
-                size="sm"
-                variant="ghost"
-                className="absolute bottom-3 left-3 bg-white/90 hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <Eye className="h-4 w-4 text-gray-600" />
-              </Button>
+        {/* Top Stats */}
+        <div className="grid grid-cols-3 gap-3">
+          {topStats.map((stat) => (
+            <div
+              key={stat.name}
+              className="flex flex-col items-center p-3 rounded-lg bg-secondary/50 border border-border transition-colors group-hover:bg-secondary"
+            >
+              <stat.icon className={`w-5 h-5 mb-2 ${isHero ? 'text-blue-400' : 'text-red-400'}`}  />
+              <div className="text-xs text-muted-foreground mb-1">{stat.name}</div>
+              <div className="text-lg font-bold text-foreground">{stat.value}</div>
             </div>
+          ))}
+        </div>
 
-            <CardHeader className="pb-3">
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <h3 className="font-bold text-lg leading-tight">{heroe.name}</h3>
-                  <p className="text-sm text-gray-600">{heroe.biography.aliases}</p>
-                </div>
-                <Badge className="text-xs bg-green-100 text-green-800 border-green-200">{heroe.biography.alignment}</Badge>
-              </div>
-              <Badge variant="outline" className="w-fit text-xs">
-                {heroe.connections.groupAffiliation}
-              </Badge>
-            </CardHeader>
+        {/* Full Name */}
+        {hero.biography.fullName && hero.biography.fullName !== hero.name && (
+          <p className="text-sm text-muted-foreground italic">
+            {hero.biography.fullName}
+          </p>
+        )}
+      </div>
 
-            <CardContent className="space-y-4">
-              <p className="text-sm text-gray-600 line-clamp-2">
-                {heroe.work.occupation}
-              </p>
-
-              {/* Stats */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1">
-                    <Zap className="h-3 w-3 text-orange-500" />
-                    <span className="text-xs font-medium">Strength</span>
-                  </div>
-                  <Progress value={heroe.powerstats.strength} className="h-2" ActiveColor={"bg-orange-500"} />
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1">
-                    <Brain className="h-3 w-3 text-blue-500" />
-                    <span className="text-xs font-medium">Intelligence</span>
-                  </div>
-                  <Progress value={heroe.powerstats.speed} className="h-2" ActiveColor={"bg-blue-500"}/>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1">
-                    <Gauge className="h-3 w-3 text-green-500" />
-                    <span className="text-xs font-medium">Speed</span>
-                  </div>
-                  <Progress value={heroe.powerstats.intelligence} className="h-2" ActiveColor="bg-green-500" />
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1">
-                    <Shield className="h-3 w-3 text-purple-500" />
-                    <span className="text-xs font-medium">Durability</span>
-                  </div>
-                  <Progress value={heroe.powerstats.durability} className="h-2" ActiveColor="bg-purple-500" />
-                </div>
-              </div>
-
-              {/* Powers */}
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm">Powers:</h4>
-                <div className="flex flex-wrap gap-1">
-                  
-                  {formattedPowers.slice(0,3).map((power) => (
-                  <Badge variant="outline" className="text-xs">
-                    {power.label}
-                  </Badge>
-                  ))}
-                  {formattedPowers.length > 3 && (
-                  <Badge variant="outline" className="text-xs bg-gray-100">
-                    +{formattedPowers.length - 3} more
-                  </Badge>
-                  )}
-                </div>
-              </div>
-
-              <div className="text-xs text-gray-500 pt-2 border-t">First appeared: {heroe.biography.firstAppearance}</div>
-            </CardContent>
-          </Card>
-    </div>
+      {/* Hover Effect Border */}
+      <div 
+        className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none"
+        style={{
+          background: isHero
+            ? 'linear-gradient(135deg, hsl(217 91% 60% / 0.1), hsl(262 83% 58% / 0.1))'
+            : 'linear-gradient(135deg, hsl(0 84% 60% / 0.1), hsl(25 95% 53% / 0.1))',
+             boxShadow: isHero
+      ? "0 0 30px hsl(217 91% 60% / 0.6)" // azul para héroes
+      : "0 0 30px hsl(0 84% 60% / 0.6)"  // rojo para villano
+        }}
+      />
+    </Card>
   )
 }
 
