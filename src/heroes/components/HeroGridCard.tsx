@@ -2,14 +2,15 @@ import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { Zap, Brain, Shield } from "lucide-react"
 import type { Hero } from "../types/Get-hero.response"
+import { useNavigate } from "react-router"
 
 interface Props {
   hero: Hero
   onClick?: () => void;
 }
 
-export const HeroGridCard = ({ hero, onClick}: Props) => {
-
+export const HeroGridCard = ({ hero }: Props) => {
+const navigate = useNavigate();
   const isHero = hero.biography.alignment === "good";
   const topStats = [
     { name: "Power", value: hero.powerstats.power, icon: Zap },
@@ -20,7 +21,7 @@ export const HeroGridCard = ({ hero, onClick}: Props) => {
   return (
       <Card
       className="group relative overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_30px_hsl(var(--primary)/0.5)] bg-card border-border"
-      onClick={onClick}
+      onClick={() => navigate(`/hero/${hero.id}`)}
     >
       {/* Image Container */}
       <div className="relative h-100 overflow-hidden">
